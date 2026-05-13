@@ -1,0 +1,121 @@
+{
+  "project_name": "Sekolah Sepak Bola (SSB) Management App",
+  "theme": "dark",
+  "archetype": "Performance Pro (Elite Athleticism)",
+  "instructions_to_main_agent": [
+    "Use Expo React Native with expo-router for file-based routing.",
+    "Apply 'Performance Pro' archetype: Deep Obsidian background, Pure White text, Volt Green primary actions.",
+    "Use NativeWind (Tailwind for React Native) for styling.",
+    "Implement Lucide React Native or @expo/vector-icons (Phosphor/Ionicons) for iconography.",
+    "Headings must use a condensed heavy font (e.g., Bebas Neue or Barlow Condensed) for an athletic feel. Body text uses Inter.",
+    "Go cardless or use tactical minimalism (1px solid borders, no soft shadows, hard corners on buttons) for containers.",
+    "Ensure high contrast and large touch targets (min 44px height for interactive elements).",
+    "Add 'testID' attributes to all interactive elements for testing.",
+    "For the radar chart, use a robust charting library like 'victory-native' or 'react-native-svg-charts'.",
+    "Do not use generic 'blue' default styles. The app should feel like a Nike or Adidas training app."
+  ],
+  "colors": {
+    "background": {
+      "default": "#09090B",
+      "card": "#18181B",
+      "surface": "#27272A"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A1A1AA",
+      "inverse": "#000000"
+    },
+    "brand": {
+      "primary": "#CCFF00",
+      "secondary": "#00E5FF",
+      "danger": "#FF3B30",
+      "warning": "#FF9500",
+      "success": "#34C759"
+    },
+    "border": {
+      "default": "#27272A",
+      "focus": "#CCFF00"
+    }
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Bebas Neue, Impact, sans-serif-condensed",
+      "body": "Inter, DM Sans, system-ui"
+    },
+    "sizes": {
+      "h1": "text-5xl tracking-tighter uppercase",
+      "h2": "text-4xl tracking-tighter uppercase",
+      "h3": "text-2xl tracking-tight uppercase",
+      "h4": "text-xl font-bold",
+      "body_lg": "text-base",
+      "body": "text-sm",
+      "caption": "text-xs text-[#A1A1AA] uppercase tracking-widest"
+    }
+  },
+  "spacing_and_layout": {
+    "container_padding": "px-6",
+    "section_gap": "gap-8",
+    "element_gap": "gap-4",
+    "border_radius": {
+      "card": "rounded-xl",
+      "button": "rounded-none",
+      "input": "rounded-lg"
+    }
+  },
+  "components": {
+    "button": {
+      "primary": "bg-[#CCFF00] text-black h-14 items-center justify-center font-bold uppercase tracking-wider",
+      "secondary": "bg-transparent border-2 border-white text-white h-14 items-center justify-center font-bold uppercase tracking-wider",
+      "ghost": "bg-transparent text-[#CCFF00] h-14 items-center justify-center font-bold uppercase"
+    },
+    "card": "bg-[#18181B] border border-[#27272A] p-5 rounded-xl",
+    "input": "bg-[#09090B] border border-[#27272A] text-white h-14 px-4 rounded-lg focus:border-[#CCFF00]",
+    "tab_bar": "bg-[#09090B] border-t border-[#27272A] pb-safe pt-2",
+    "badge": "px-2 py-1 bg-[#27272A] text-white text-xs uppercase tracking-wider rounded"
+  },
+  "image_urls": [
+    {
+      "category": "onboarding_hero",
+      "url": "https://images.unsplash.com/photo-1762742228020-2a56f4704eb5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwzfHx5b3V0aCUyMGZvb3RiYWxsJTIwdHJhaW5pbmd8ZW58MHx8fHwxNzc4NjMwNzQ2fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Football players stretching, used as background for Login/Register with heavy bg-black/70 overlay"
+    },
+    {
+      "category": "announcement_feed",
+      "url": "https://images.unsplash.com/photo-1771257807779-a72e74deaa11?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwxfHx5b3V0aCUyMGZvb3RiYWxsJTIwdHJhaW5pbmd8ZW58MHx8fHwxNzc4NjMwNzQ2fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Boys playing soccer, used as thumbnail for academy news/announcements"
+    },
+    {
+      "category": "student_profile",
+      "url": "https://images.unsplash.com/photo-1767902012345-bd31f0ba76d7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwyfHx5b3V0aCUyMGZvb3RiYWxsJTIwdHJhaW5pbmd8ZW58MHx8fHwxNzc4NjMwNzQ2fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Child playing soccer, used as avatar/header for student profile"
+    }
+  ],
+  "screens": {
+    "LoginRegister": {
+      "layout": "Full screen image background with bg-black/70 overlay. Top area for large 'SSB ACADEMY' typographic logo. Middle area for role selection pills (Admin, Coach, Parent). Bottom area for credentials input and full-width sharp-edged login button."
+    },
+    "Dashboard_Coach": {
+      "layout": "Bento grid style. Top: 'Welcome Coach' + quick stats (Next Match, Players Present). Middle: Horizontal scroll of today's training schedule. Bottom: Quick actions for Attendance & Skill Rating."
+    },
+    "Dashboard_Parent": {
+      "layout": "Top: Child selector (if multiple). Middle: SPP/Fee status card (Red #FF3B30 border if unpaid, Green #34C759 if paid). Bottom: Recent announcements and Match schedule."
+    },
+    "StudentList_Coach": {
+      "layout": "Vertical list. Search bar at top. List items show Avatar, Name, Position, and a sparkline or mini-indicator of attendance rate."
+    },
+    "StudentProfile": {
+      "layout": "Header: Player photo, Name, Jersey #. Section 1: Radar Chart for 5 dimensions (Teknik, Fisik, Mental, Taktik, Kerjasama) using a charting library, plotted with Volt Green fill. Section 2: Monthly SPP history list. Section 3: Coach notes."
+    },
+    "Schedule_Attendance": {
+      "layout": "Top: Date picker ribbon. Middle: Session details card. Bottom: List of students with large touch-target toggle buttons (Present/Absent/Sick) in Volt Green and Red."
+    },
+    "Announcements": {
+      "layout": "Feed format. Cards with edge-to-edge images, heavy typography overlaid at bottom of image (bg-black/50 scrim), snippet text below."
+    }
+  },
+  "motion_and_interaction": {
+    "tab_transition": "Fade and slight scale up for active tab icon.",
+    "button_press": "Use TouchableOpacity with activeOpacity={0.7} to simulate quick athletic feedback.",
+    "list_scroll": "Ensure smooth momentum scrolling with showsVerticalScrollIndicator={false} for a clean look."
+  }
+}
