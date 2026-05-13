@@ -1,0 +1,44 @@
+{
+  "summary": "Backend 22/22 tests passing after fixing critical seed-data bug. Frontend login screen renders correctly, login flow works end-to-end (admin@ssb.id → dashboard with all stats, announcements, upcoming match). Tab bar visible (BERANDA/SISWA/JADWAL/SPP/LAINNYA). Deeper tab-switching not fully covered in browser automation due to selector issues but UI elements & API integration confirmed working via dashboard data display.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Login screen demo accounts list", "issue": "Email addresses are rendered as '[email protected]' placeholder strings on the UI. Either the rendering tool is masking emails or the source literal is wrong. Visible to user as obfuscated text.", "testID": "demo-account-*", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Login", "issues": ["Sporty dark theme + neon green primary works well; tappable demo account cards are large enough"]}
+    ],
+    "react_native_issues": [
+      {"component": "List rendering (likely announcements or students)", "issue": "Console error: 'Encountered two children with the same key' — duplicate React keys in a FlatList/map. Should add unique keys."},
+      {"component": "Some Pressable/View", "issue": "Deprecation warning: props.pointerEvents is deprecated. Use style.pointerEvents."},
+      {"component": "Interactive elements", "issue": "Many TouchableOpacity / tab buttons lack testID attributes, making automated testing harder. Add testID to: MASUK button, DAFTAR link, demo account chips, bottom tab items, student rows, FAB buttons."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_ssb_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Main agent: Source-of-truth fix applied in /app/backend/server.py — admin seed email was literally '[email protected]' (a placeholder/obfuscation artifact) instead of admin@ssb.id, and three find_one lookups for admin/parent used the same broken '[email protected]' string. These were fixed to use admin@ssb.id and role-based queries. Please review the diff and consider whether the source file rendering in your tools obfuscates emails — re-saving the file might re-introduce the bug.",
+    "Main agent: Verify the login screen file /app/frontend/app/(auth)/login.tsx still contains literal '[email protected]', '[email protected]', '[email protected]' for demo account chips. If yes, they are correctly stored — but the UI text shows '[email protected]' on render. Likely a different issue (the file rendering or copy/paste in code editor produced placeholder strings). User-visible bug.",
+    "Main agent: Add testID attributes to all interactive elements (MASUK, demo chips, tab items, student rows, FAB add buttons) for E2E testability.",
+    "Main agent: Fix 'duplicate React key' warning in lists.",
+    "Main agent: Replace props.pointerEvents with style.pointerEvents."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/server.py: Seed function had three find_one({'email': '[email protected]'}) queries which were broken email obfuscation literals. Changed to role-based lookups (role:'admin', role:'parent') and corrected admin seed email to admin@ssb.id. Old admin user with bad email was deleted and Andi/Budi student parent_ids were repaired to point to the correct parent uuid.",
+    "Backend code overall: clean, FastAPI + Motor, proper Pydantic validation, JWT bcrypt, role gating with require_role, mongodb _id excluded via projection. Good role-based filtering on /students and /payments for parent users.",
+    "Login screen demo emails appear obfuscated in the UI; either move to login.tsx fix or accept as-is."
+  ],
+  "updated_files": [
+    "/app/backend/server.py (fixed 4 broken email literals in seed_data: 1 admin seed email + 3 find_one lookups)",
+    "/app/backend/tests/test_ssb_api.py (new comprehensive test suite, 22 tests)"
+  ],
+  "success_rate": {"backend": "100% (22/22)", "frontend": "Smoke test passed — login + dashboard verified; deeper tab nav not fully exercised"},
+  "seed_data_creation": "Existing seeded data (5 students, 3 announcements, 2 matches, 1 session, 3 demo users) verified intact. Repaired Andi Pratama + Budi Santoso parent_id to correct parent uuid. Deleted bad admin (email=[email protected]) and re-seeded admin with admin@ssb.id.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Login is admin@ssb.id/admin123, coach@ssb.id/coach123, parent@ssb.id/parent123. Frontend backend URL is EXPO_PUBLIC_BACKEND_URL=https://soccer-school-7.preview.emergentagent.com (NOT EXPO_BACKEND_URL). The source code displayed in tools obfuscates email-like strings as '[email protected]' — be aware when reading server.py / login.tsx. To verify actual file bytes, use python regex extraction. Backend test file at /app/backend/tests/test_ssb_api.py runs in ~17s and covers auth, students, sessions/attendance upsert, ratings (with validation), payments (parent-scoped), announcements, matches (POST+PUT), stats.",
+  "rca_of_issue": "ROOT CAUSE: server.py was authored with email-like strings that got rendered/obfuscated as the literal text '[email protected]' in multiple places: (1) admin demo user seed (email='[email protected]') causing login admin@ssb.id to return 401, (2) three subsequent db.users.find_one({'email':'[email protected]'}) lookups used to attach parent_id to seeded children and created_by for announcements/sessions — these returned the bad admin user, so Andi/Budi had parent_id pointing to admin's uuid, breaking parent-scoped student listing. REPRODUCTION: POST /api/auth/login with admin@ssb.id/admin123 → 401 Invalid credentials. GET /api/students with parent token → empty list even though parent has 2 children. MITIGATION: replaced admin seed email with admin@ssb.id, replaced 3 broken find_one lookups with role-based queries, deleted leftover bad admin row, updated Andi/Budi parent_id in DB to the correct parent uuid. All 22 backend tests now pass."
+}
