@@ -441,8 +441,8 @@ async def seed_data():
     """Idempotent seeding of demo accounts and data."""
     demo_users = [
         {'email': 'admin@ssb.id', 'password': 'admin123', 'name': 'Admin SSB', 'role': 'admin', 'phone': '081234567890'},
-        {'email': '[email protected]', 'password': 'coach123', 'name': 'Coach Budi', 'role': 'coach', 'phone': '081234567891'},
-        {'email': '[email protected]', 'password': 'parent123', 'name': 'Pak Joko', 'role': 'parent', 'phone': '081234567892'},
+        {'email': 'coach@ssb.id', 'password': 'coach123', 'name': 'Coach Budi', 'role': 'coach', 'phone': '081234567891'},
+        {'email': 'parent@ssb.id', 'password': 'parent123', 'name': 'Pak Joko', 'role': 'parent', 'phone': '081234567892'},
     ]
     for u in demo_users:
         existing = await db.users.find_one({'email': u['email']})

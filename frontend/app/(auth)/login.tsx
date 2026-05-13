@@ -18,9 +18,9 @@ import { useAuth } from '../../src/context/AuthContext';
 import { theme, spacing, radius } from '../../src/theme';
 
 const DEMO = [
-  { label: 'Admin', email: '[email protected]', password: 'admin123', color: theme.primary },
-  { label: 'Pelatih', email: '[email protected]', password: 'coach123', color: theme.secondary },
-  { label: 'Orangtua', email: '[email protected]', password: 'parent123', color: theme.warning },
+  { label: 'Admin', email: 'admin@ssb.id', password: 'admin123', color: theme.primary },
+  { label: 'Pelatih', email: 'coach@ssb.id', password: 'coach123', color: theme.secondary },
+  { label: 'Orangtua', email: 'parent@ssb.id', password: 'parent123', color: theme.warning },
 ];
 
 export default function Login() {
