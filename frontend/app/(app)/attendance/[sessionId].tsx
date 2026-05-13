@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { api } from '../../../src/api/client';
 import { theme, spacing, radius } from '../../../src/theme';
+import { exportAttendanceReport } from '../../../src/utils/pdf';
 
 type Status = 'present' | 'absent' | 'sick';
 
@@ -66,7 +67,9 @@ export default function Attendance() {
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} testID="att-back"><Ionicons name="arrow-back" size={24} color={theme.text} /></TouchableOpacity>
         <Text style={styles.title}>ABSENSI</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity testID="export-att" onPress={() => session && exportAttendanceReport(session, students, Object.keys(statuses).map((sid) => ({ student_id: sid, status: statuses[sid] })))}>
+          <Ionicons name="document-text-outline" size={22} color={theme.primary} />
+        </TouchableOpacity>
       </View>
 
       {session && (

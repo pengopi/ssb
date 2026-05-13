@@ -12,6 +12,9 @@ export default function AppLayout() {
       <Stack.Screen name="add-match" options={{ presentation: 'modal' }} />
       <Stack.Screen name="attendance/[sessionId]" />
       <Stack.Screen name="add-payment" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="add-permission" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="permissions" />
     </Stack>
   );
 }

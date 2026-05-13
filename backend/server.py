@@ -140,6 +140,40 @@ class MatchIn(BaseModel):
 class MatchOut(MatchIn):
     id: str
 
+class NotificationIn(BaseModel):
+    user_id: Optional[str] = None  # None = broadcast to role
+    target_role: Optional[Role] = None
+    title: str
+    body: str
+    kind: Literal['attendance', 'payment', 'permission', 'announcement', 'general'] = 'general'
+    link: Optional[str] = None  # e.g., /(app)/permissions
+
+class NotificationOut(NotificationIn):
+    id: str
+    read: bool
+    created_at: str
+
+class PermissionIn(BaseModel):
+    student_id: str
+    session_id: str
+    type: Literal['sick', 'excused']
+    reason: str
+
+class PermissionOut(PermissionIn):
+    id: str
+    submitted_by: str
+    submitted_by_name: str
+    student_name: str
+    status: Literal['pending', 'approved', 'rejected']
+    created_at: str
+
+class StudentUpdate(BaseModel):
+    name: Optional[str] = None
+    position: Optional[str] = None
+    jersey_number: Optional[int] = None
+    photo: Optional[str] = None
+    notes: Optional[str] = None
+
 
 # ============ AUTH HELPERS ============
 def hash_password(password: str) -> str:
@@ -308,12 +342,26 @@ async def mark_attendance(data: AttendanceIn, user: dict = Depends(require_role(
             {'id': existing['id']},
             {'$set': {'status': data.status, 'marked_by': user['id'], 'marked_at': now}}
         )
-        return {**data.dict(), 'id': existing['id'], 'marked_by': user['id'], 'marked_at': now}
-    aid = str(uuid.uuid4())
-    doc = {'id': aid, **data.dict(), 'marked_by': user['id'], 'marked_at': now}
-    await db.attendance.insert_one(doc)
-    doc.pop('_id', None)
-    return doc
+        result = {**data.dict(), 'id': existing['id'], 'marked_by': user['id'], 'marked_at': now}
+    else:
+        aid = str(uuid.uuid4())
+        doc = {'id': aid, **data.dict(), 'marked_by': user['id'], 'marked_at': now}
+        await db.attendance.insert_one(doc)
+        doc.pop('_id', None)
+        result = doc
+    # Notify parent
+    student = await db.students.find_one({'id': data.student_id})
+    if student and student.get('parent_id'):
+        session = await db.sessions.find_one({'id': data.session_id})
+        sess_title = session.get('title', 'Latihan') if session else 'Latihan'
+        status_label = {'present': 'HADIR', 'absent': 'TIDAK HADIR', 'sick': 'SAKIT'}.get(data.status, data.status)
+        await push_notification(
+            title=f"Absensi: {student['name']}",
+            body=f"{sess_title} — Status: {status_label}",
+            kind='attendance',
+            user_id=student['parent_id'],
+        )
+    return result
 
 
 # ============ PAYMENTS ============
@@ -341,12 +389,24 @@ async def create_payment(data: PaymentIn, user: dict = Depends(require_role('adm
             {'id': existing['id']},
             {'$set': {'status': data.status, 'amount': data.amount, 'paid_date': paid_date}}
         )
-        return {**data.dict(), 'id': existing['id'], 'paid_date': paid_date}
-    pid = str(uuid.uuid4())
-    doc = {'id': pid, **data.dict(), 'paid_date': paid_date}
-    await db.payments.insert_one(doc)
-    doc.pop('_id', None)
-    return doc
+        result = {**data.dict(), 'id': existing['id'], 'paid_date': paid_date}
+    else:
+        pid = str(uuid.uuid4())
+        doc = {'id': pid, **data.dict(), 'paid_date': paid_date}
+        await db.payments.insert_one(doc)
+        doc.pop('_id', None)
+        result = doc
+    # Notify parent
+    student = await db.students.find_one({'id': data.student_id})
+    if student and student.get('parent_id'):
+        status_label = 'LUNAS' if data.status == 'paid' else 'BELUM LUNAS'
+        await push_notification(
+            title=f"SPP {data.month}/{data.year}: {student['name']}",
+            body=f"Status pembayaran: {status_label} — Rp {data.amount:,.0f}".replace(',', '.'),
+            kind='payment',
+            user_id=student['parent_id'],
+        )
+    return result
 
 
 # ============ SKILL RATINGS ============
@@ -387,6 +447,14 @@ async def create_announcement(data: AnnouncementIn, user: dict = Depends(require
     }
     await db.announcements.insert_one(doc)
     doc.pop('_id', None)
+    # Notify all users (broadcast to each role)
+    for r in ['admin', 'coach', 'parent']:
+        await push_notification(
+            title=f"Pengumuman Baru",
+            body=data.title,
+            kind='announcement',
+            target_role=r,
+        )
     return doc
 
 @api_router.delete('/announcements/{aid}')
@@ -434,6 +502,154 @@ async def stats(user: dict = Depends(get_current_user)):
         'upcoming_matches': upcoming_matches,
         'unpaid_payments': unpaid,
     }
+
+
+# ============ NOTIFICATIONS ============
+async def push_notification(title: str, body: str, kind: str = 'general',
+                            user_id: Optional[str] = None,
+                            target_role: Optional[str] = None,
+                            link: Optional[str] = None):
+    """Insert a notification record. Either user_id (specific) or target_role (broadcast)."""
+    doc = {
+        'id': str(uuid.uuid4()),
+        'user_id': user_id,
+        'target_role': target_role,
+        'title': title,
+        'body': body,
+        'kind': kind,
+        'link': link,
+        'read': False,
+        'created_at': datetime.now(timezone.utc).isoformat(),
+    }
+    await db.notifications.insert_one(doc)
+    return doc
+
+@api_router.get('/notifications', response_model=List[NotificationOut])
+async def list_notifications(user: dict = Depends(get_current_user)):
+    items = await db.notifications.find(
+        {'$or': [{'user_id': user['id']}, {'target_role': user['role']}]},
+        {'_id': 0}
+    ).sort('created_at', -1).to_list(100)
+    return items
+
+@api_router.get('/notifications/unread-count')
+async def unread_count(user: dict = Depends(get_current_user)):
+    c = await db.notifications.count_documents({
+        '$or': [{'user_id': user['id']}, {'target_role': user['role']}],
+        'read': False,
+    })
+    return {'count': c}
+
+@api_router.post('/notifications/{nid}/read')
+async def mark_read(nid: str, user: dict = Depends(get_current_user)):
+    await db.notifications.update_one({'id': nid}, {'$set': {'read': True}})
+    return {'ok': True}
+
+@api_router.post('/notifications/read-all')
+async def mark_all_read(user: dict = Depends(get_current_user)):
+    await db.notifications.update_many(
+        {'$or': [{'user_id': user['id']}, {'target_role': user['role']}], 'read': False},
+        {'$set': {'read': True}}
+    )
+    return {'ok': True}
+
+
+# ============ PERMISSIONS (IZIN) ============
+@api_router.get('/permissions', response_model=List[PermissionOut])
+async def list_permissions(user: dict = Depends(get_current_user)):
+    if user['role'] == 'parent':
+        students = await db.students.find({'parent_id': user['id']}, {'_id': 0, 'id': 1}).to_list(50)
+        ids = [s['id'] for s in students]
+        items = await db.permissions.find({'student_id': {'$in': ids}}, {'_id': 0}).sort('created_at', -1).to_list(200)
+    else:
+        items = await db.permissions.find({}, {'_id': 0}).sort('created_at', -1).to_list(500)
+    return items
+
+@api_router.post('/permissions', response_model=PermissionOut)
+async def create_permission(data: PermissionIn, user: dict = Depends(get_current_user)):
+    student = await db.students.find_one({'id': data.student_id})
+    if not student:
+        raise HTTPException(404, 'Siswa tidak ditemukan')
+    if user['role'] == 'parent' and student.get('parent_id') != user['id']:
+        raise HTTPException(403, 'Bukan anak Anda')
+    pid = str(uuid.uuid4())
+    doc = {
+        'id': pid,
+        **data.dict(),
+        'submitted_by': user['id'],
+        'submitted_by_name': user['name'],
+        'student_name': student['name'],
+        'status': 'pending',
+        'created_at': datetime.now(timezone.utc).isoformat(),
+    }
+    await db.permissions.insert_one(doc)
+    doc.pop('_id', None)
+    # Auto-create attendance record matching the permission type
+    att_status = 'sick' if data.type == 'sick' else 'absent'
+    existing = await db.attendance.find_one({'session_id': data.session_id, 'student_id': data.student_id})
+    now = datetime.now(timezone.utc).isoformat()
+    if existing:
+        await db.attendance.update_one({'id': existing['id']}, {'$set': {'status': att_status, 'marked_by': user['id'], 'marked_at': now}})
+    else:
+        await db.attendance.insert_one({
+            'id': str(uuid.uuid4()),
+            'session_id': data.session_id,
+            'student_id': data.student_id,
+            'status': att_status,
+            'marked_by': user['id'],
+            'marked_at': now,
+        })
+    # Notify coaches and admin
+    await push_notification(
+        title=f"Izin {data.type.upper()}: {student['name']}",
+        body=f"{user['name']}: {data.reason}",
+        kind='permission',
+        target_role='coach',
+        link='/(app)/permissions',
+    )
+    await push_notification(
+        title=f"Izin {data.type.upper()}: {student['name']}",
+        body=f"{user['name']}: {data.reason}",
+        kind='permission',
+        target_role='admin',
+        link='/(app)/permissions',
+    )
+    return doc
+
+@api_router.post('/permissions/{pid}/approve')
+async def approve_permission(pid: str, user: dict = Depends(require_role('admin', 'coach'))):
+    p = await db.permissions.find_one({'id': pid})
+    if not p:
+        raise HTTPException(404, 'Tidak ditemukan')
+    await db.permissions.update_one({'id': pid}, {'$set': {'status': 'approved'}})
+    # Notify parent
+    if p.get('submitted_by'):
+        await push_notification(
+            title='Izin Disetujui',
+            body=f"Izin untuk {p['student_name']} telah disetujui pelatih.",
+            kind='permission',
+            user_id=p['submitted_by'],
+        )
+    return {'ok': True}
+
+
+# ============ STUDENT UPDATE ============
+@api_router.put('/students/{sid}', response_model=StudentOut)
+async def update_student(sid: str, data: StudentUpdate, user: dict = Depends(get_current_user)):
+    s = await db.students.find_one({'id': sid})
+    if not s:
+        raise HTTPException(404, 'Tidak ditemukan')
+    # Parents can only update photo of their own child; coach/admin can update all
+    if user['role'] == 'parent':
+        if s.get('parent_id') != user['id']:
+            raise HTTPException(403, 'Forbidden')
+        update_dict = {k: v for k, v in data.dict().items() if v is not None and k == 'photo'}
+    else:
+        update_dict = {k: v for k, v in data.dict().items() if v is not None}
+    if update_dict:
+        await db.students.update_one({'id': sid}, {'$set': update_dict})
+    out = await db.students.find_one({'id': sid}, {'_id': 0})
+    return out
 
 
 # ============ SEED ============

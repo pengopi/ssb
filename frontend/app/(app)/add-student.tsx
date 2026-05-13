@@ -5,12 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { api } from '../../src/api/client';
 import { theme, spacing, radius } from '../../src/theme';
+import PhotoPicker from '../../src/components/PhotoPicker';
 
 const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward'];
 
 export default function AddStudent() {
   const router = useRouter();
   const [form, setForm] = useState({ name: '', dob: '', position: 'Midfielder', jersey_number: '', parent_email: '' });
+  const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
@@ -26,6 +28,7 @@ export default function AddStudent() {
         position: form.position,
         jersey_number: form.jersey_number ? parseInt(form.jersey_number) : null,
         parent_email: form.parent_email || null,
+        photo: photo,
       });
       router.back();
     } catch (e: any) {
@@ -45,6 +48,10 @@ export default function AddStudent() {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: spacing.lg }} keyboardShouldPersistTaps="handled">
+          <View style={{ alignItems: 'center', marginBottom: spacing.md }}>
+            <PhotoPicker value={photo} onChange={setPhoto} size={110} testID="student-photo" />
+            <Text style={{ color: theme.textMuted, fontSize: 10, letterSpacing: 1.5, marginTop: spacing.sm }}>FOTO SISWA (OPSIONAL)</Text>
+          </View>
           <Text style={styles.label}>NAMA LENGKAP</Text>
           <TextInput testID="form-name" value={form.name} onChangeText={(t) => setForm({ ...form, name: t })} placeholder="Nama" placeholderTextColor={theme.textDim} style={styles.input} />
 

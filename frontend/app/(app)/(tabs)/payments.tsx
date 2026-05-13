@@ -6,6 +6,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../../src/context/AuthContext';
 import { api } from '../../../src/api/client';
 import { theme, spacing, radius } from '../../../src/theme';
+import { exportPaymentReport } from '../../../src/utils/pdf';
 
 const MONTHS = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
 
@@ -39,11 +40,16 @@ export default function Payments() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>PEMBAYARAN SPP</Text>
-        {canEdit && (
-          <TouchableOpacity testID="add-payment-btn" onPress={() => router.push('/(app)/add-payment')} style={styles.addBtn}>
-            <Ionicons name="add" size={22} color={theme.bg} />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity testID="export-payment-btn" onPress={() => exportPaymentReport(payments, students)} style={styles.addBtn}>
+            <Ionicons name="document-text" size={20} color={theme.bg} />
           </TouchableOpacity>
-        )}
+          {canEdit && (
+            <TouchableOpacity testID="add-payment-btn" onPress={() => router.push('/(app)/add-payment')} style={styles.addBtn}>
+              <Ionicons name="add" size={22} color={theme.bg} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={styles.summary}>

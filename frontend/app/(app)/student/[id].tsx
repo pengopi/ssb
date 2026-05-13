@@ -7,6 +7,8 @@ import { useAuth } from '../../../src/context/AuthContext';
 import { api } from '../../../src/api/client';
 import { theme, spacing, radius } from '../../../src/theme';
 import RadarChart from '../../../src/components/RadarChart';
+import { exportProgressReport } from '../../../src/utils/pdf';
+import { Image } from 'react-native';
 
 export default function StudentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -76,13 +78,19 @@ export default function StudentDetail() {
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>PROFIL SISWA</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity testID="export-progress" onPress={() => exportProgressReport(student, ratings, attendance)}>
+          <Ionicons name="document-text-outline" size={22} color={theme.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: 100 }}>
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>#{student.jersey_number ?? '-'}</Text>
+            {student.photo ? (
+              <Image source={{ uri: student.photo }} style={{ width: 80, height: 80, resizeMode: 'cover' }} />
+            ) : (
+              <Text style={styles.avatarText}>#{student.jersey_number ?? '-'}</Text>
+            )}
           </View>
           <Text style={styles.name}>{student.name.toUpperCase()}</Text>
           <Text style={styles.position}>{student.position.toUpperCase()}</Text>
@@ -161,7 +169,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: spacing.lg, paddingBottom: spacing.sm },
   headerTitle: { color: theme.text, fontSize: 14, fontWeight: '900', letterSpacing: 2 },
   profileCard: { backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border, borderRadius: radius.xl, padding: spacing.lg, alignItems: 'center' },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: theme.primary },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: theme.primary, overflow: 'hidden' },
   avatarText: { color: theme.primary, fontSize: 24, fontWeight: '900' },
   name: { color: theme.text, fontSize: 22, fontWeight: '900', marginTop: spacing.md, letterSpacing: 1 },
   position: { color: theme.primary, fontSize: 12, fontWeight: '700', letterSpacing: 2, marginTop: 4 },

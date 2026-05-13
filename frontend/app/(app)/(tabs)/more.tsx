@@ -48,6 +48,22 @@ export default function More() {
         </TouchableOpacity>
       </View>
 
+      <TouchableOpacity
+        testID="izin-banner"
+        style={styles.izinBanner}
+        onPress={() => router.push('/(app)/permissions')}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="document-text" size={22} color={theme.primary} />
+        <View style={{ flex: 1, marginLeft: spacing.sm }}>
+          <Text style={styles.izinTitle}>IZIN ABSEN</Text>
+          <Text style={styles.izinSub}>
+            {user?.role === 'parent' ? 'Ajukan izin sakit / berhalangan untuk anak' : 'Lihat & setujui pengajuan izin orang tua'}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+      </TouchableOpacity>
+
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} tintColor={theme.primary} />}
@@ -138,4 +154,7 @@ const styles = StyleSheet.create({
   matchBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, marginTop: spacing.sm },
   matchBadgeText: { color: theme.bg, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   empty: { color: theme.textMuted, fontStyle: 'italic', textAlign: 'center', marginTop: spacing.xl },
+  izinBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderWidth: 1, borderColor: theme.primary + '60', padding: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.sm, borderRadius: radius.lg },
+  izinTitle: { color: theme.text, fontSize: 14, fontWeight: '900', letterSpacing: 1.5 },
+  izinSub: { color: theme.textMuted, fontSize: 11, marginTop: 2 },
 });

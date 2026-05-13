@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, TextInput } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -89,7 +89,11 @@ export default function Students() {
             activeOpacity={0.7}
           >
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>#{item.jersey_number ?? '-'}</Text>
+              {item.photo ? (
+                <Image source={{ uri: item.photo }} style={styles.avatarImg} />
+              ) : (
+                <Text style={styles.avatarText}>#{item.jersey_number ?? '-'}</Text>
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.cardName}>{item.name}</Text>
@@ -111,7 +115,8 @@ const styles = StyleSheet.create({
   searchBox: { flexDirection: 'row', alignItems: 'center', marginHorizontal: spacing.lg, marginTop: spacing.md, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border, paddingHorizontal: spacing.md, borderRadius: radius.md, height: 48 },
   searchInput: { flex: 1, color: theme.text, marginLeft: spacing.sm, fontSize: 14 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border, padding: spacing.md, borderRadius: radius.lg },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center', marginRight: spacing.md, borderWidth: 1, borderColor: theme.primary },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center', marginRight: spacing.md, borderWidth: 1, borderColor: theme.primary, overflow: 'hidden' },
+  avatarImg: { width: 48, height: 48, resizeMode: 'cover' },
   avatarText: { color: theme.primary, fontWeight: '900', fontSize: 14 },
   cardName: { color: theme.text, fontSize: 15, fontWeight: '700' },
   cardSub: { color: theme.textMuted, fontSize: 12, marginTop: 2, letterSpacing: 0.5 },

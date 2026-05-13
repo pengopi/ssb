@@ -20,18 +20,21 @@ export default function Home() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
+  const [unread, setUnread] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [s, a, m] = await Promise.all([
+      const [s, a, m, u] = await Promise.all([
         api.get<Stats>('/stats'),
         api.get<any[]>('/announcements'),
         api.get<any[]>('/matches'),
+        api.get<{ count: number }>('/notifications/unread-count'),
       ]);
       setStats(s);
       setAnnouncements(a.slice(0, 3));
       setMatches(m.filter((x) => x.status === 'upcoming').slice(0, 2));
+      setUnread(u.count);
     } catch (e) {
       console.log('load error', e);
     }
@@ -65,9 +68,19 @@ export default function Home() {
               <Text style={styles.roleText}>{roleLabel[user?.role || 'parent']}</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={signOut} testID="logout-btn" style={styles.iconBtn}>
-            <Ionicons name="log-out-outline" size={22} color={theme.text} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity onPress={() => router.push('/(app)/notifications')} testID="notif-btn" style={styles.iconBtn}>
+              <Ionicons name="notifications-outline" size={22} color={theme.text} />
+              {unread > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unread > 9 ? '9+' : unread}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={signOut} testID="logout-btn" style={styles.iconBtn}>
+              <Ionicons name="log-out-outline" size={22} color={theme.text} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.statsGrid}>
@@ -140,6 +153,8 @@ const styles = StyleSheet.create({
   roleDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   roleText: { color: theme.text, fontSize: 10, letterSpacing: 1.5, fontWeight: '700' },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.card, alignItems: 'center', justifyContent: 'center' },
+  badge: { position: 'absolute', top: -2, right: -2, backgroundColor: theme.danger, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
+  badgeText: { color: theme.text, fontSize: 10, fontWeight: '900' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
   statCard: { flex: 1, minWidth: '47%', backgroundColor: theme.card, borderWidth: 1, padding: spacing.md, borderRadius: radius.lg },
   statValue: { color: theme.text, fontSize: 28, fontWeight: '900', marginTop: spacing.sm },
