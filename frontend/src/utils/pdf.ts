@@ -39,14 +39,38 @@ function footer() {
 
 export async function exportPDF(htmlBody: string, fileTitle: string) {
   const html = `<!doctype html><html><head>${styleBase}</head><body>${htmlBody}${footer()}</body></html>`;
-  const { uri } = await Print.printToFileAsync({ html });
-  if (Platform.OS === 'web') {
-    // open in new tab
-    window.open(uri, '_blank');
-    return;
-  }
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: fileTitle, UTI: 'com.adobe.pdf' });
+  try {
+    if (Platform.OS === 'web') {
+      // Open the HTML in a new tab so user can use browser's "Print to PDF"
+      const win = window.open('', '_blank');
+      if (!win) {
+        alert('Pop-up diblokir. Izinkan pop-up untuk export PDF.');
+        return;
+      }
+      win.document.write(html);
+      win.document.close();
+      // Auto-trigger print dialog after content loads
+      setTimeout(() => {
+        try { win.focus(); win.print(); } catch (e) { /* ignore */ }
+      }, 500);
+      return;
+    }
+    const result = await Print.printToFileAsync({ html });
+    const uri = result?.uri;
+    if (!uri) {
+      throw new Error('Gagal membuat PDF');
+    }
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: fileTitle, UTI: 'com.adobe.pdf' });
+    }
+  } catch (e: any) {
+    console.warn('PDF export error:', e?.message || e);
+    if (Platform.OS === 'web') {
+      alert('Gagal export PDF: ' + (e?.message || 'unknown error'));
+    } else {
+      const { Alert } = require('react-native');
+      Alert.alert('Gagal export PDF', e?.message || 'Terjadi kesalahan');
+    }
   }
 }
 
