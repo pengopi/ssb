@@ -13,6 +13,21 @@ Mobile-first (Expo React Native) management app for Indonesian football schools 
 - **Matches**: Upcoming + finished with scores; coach/admin can schedule + update score
 - **Role scoping**: Parents only see their own children's data (students, payments)
 
+## Iteration 2 — Added Features
+- Photo upload (base64) untuk siswa via expo-image-picker
+- Export PDF: Absensi per sesi, Perkembangan siswa, Laporan SPP (via expo-print + expo-sharing)
+- In-app notification feed dengan bell badge di dashboard (auto-fire saat absensi/SPP/pengumuman/izin)
+- Izin absen: orangtua submit izin → auto-mark attendance (sick/absent) + notifikasi ke pelatih → pelatih bisa approve
+
+### New endpoints
+`/api/notifications`, `/api/notifications/unread-count`, `/api/notifications/{id}/read`, `/api/notifications/read-all`
+`/api/permissions`, `/api/permissions/{id}/approve`
+`PUT /api/students/{id}` (foto update, parent-scoped)
+
+### New screens
+`/(app)/notifications`, `/(app)/permissions`, `/(app)/add-permission`
++ PhotoPicker component & PDF utility module
+
 ## Tech Stack
 - **Backend**: FastAPI + Motor (async MongoDB) + bcrypt + PyJWT — all routes under `/api`
 - **Frontend**: Expo SDK 54, expo-router (file-based), react-native-svg (radar chart), AsyncStorage (token)
