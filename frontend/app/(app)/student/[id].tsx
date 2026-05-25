@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -8,7 +8,6 @@ import { api } from '../../../src/api/client';
 import { theme, spacing, radius } from '../../../src/theme';
 import RadarChart from '../../../src/components/RadarChart';
 import { exportProgressReport } from '../../../src/utils/pdf';
-import { Image } from 'react-native';
 
 export default function StudentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();

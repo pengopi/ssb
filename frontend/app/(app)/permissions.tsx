@@ -80,7 +80,7 @@ export default function Permissions() {
               </View>
             </View>
             <Text style={styles.studentName}>{item.student_name}</Text>
-            <Text style={styles.reason}>"{item.reason}"</Text>
+            <Text style={styles.reason}>{'"'}{item.reason}{'"'}</Text>
             <Text style={styles.submittedBy}>Diajukan oleh {item.submitted_by_name} • {new Date(item.created_at).toLocaleDateString('id-ID')}</Text>
             {canApprove && item.status === 'pending' && (
               <TouchableOpacity testID={`approve-${item.id}`} onPress={() => approve(item.id)} style={styles.approveBtn}>

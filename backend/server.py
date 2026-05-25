@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -450,7 +450,7 @@ async def create_announcement(data: AnnouncementIn, user: dict = Depends(require
     # Notify all users (broadcast to each role)
     for r in ['admin', 'coach', 'parent']:
         await push_notification(
-            title=f"Pengumuman Baru",
+            title="Pengumuman Baru",
             body=data.title,
             kind='announcement',
             target_role=r,
