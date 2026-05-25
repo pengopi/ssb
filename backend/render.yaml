@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ssb-academy-api
+    runtime: docker
+    region: singapore
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+    healthCheckPath: /docs
+    autoDeploy: true
